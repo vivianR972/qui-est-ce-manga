@@ -1,10 +1,13 @@
 # Qui est-ce ? Manga
 
-Jeu de deduction a deux joueurs, specialise manga.
+Comme un jeu GitHub Pages classique : tu ouvres le lien, tu joues. Pas de Netlify, pas de compte, pas de `python`.
 
-## Jouer a deux PC
-1. Heberger le dossier (GitHub Pages) ou lancer `python3 -m http.server 8080`.
-2. Un joueur cree une partie en ligne et envoie le code.
-3. L'ami rejoint avec le code.
+## Jouer
 
-Repo: https://github.com/vivianR972/qui-est-ce-manga
+1. Active GitHub Pages une fois : repo → **Settings** → **Pages** → Source **Deploy from a branch** → Branch **main** / **root** → Save.
+2. Le jeu est ici :
+   **https://vivianR972.github.io/qui-est-ce-manga/**
+3. Envoie ce lien à ton ami. Lui crée une salle ou rejoint avec le code.
+
+En attendant que Pages se lance, aperçu :
+https://raw.githack.com/vivianR972/qui-est-ce-manga/main/index.html
