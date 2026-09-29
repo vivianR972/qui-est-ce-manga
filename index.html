@@ -18,28 +18,26 @@
             <input id="name-input" maxlength="18" placeholder="Ex. LuffyFan" />
           </div>
           <div class="actions" style="margin-top:18px">
-            <button id="btn-create">Creer une partie en ligne</button>
-            <button id="btn-join" class="cyan">Rejoindre un ami</button>
-            <button id="btn-local" class="ghost">Meme ordinateur</button>
+            <button id="btn-create" type="button" onclick="window.qecCreate&&window.qecCreate()">Creer une partie en ligne</button>
+            <button id="btn-join" type="button" class="cyan" onclick="window.qecJoin&&window.qecJoin()">Rejoindre un ami</button>
+            <button id="btn-local" type="button" class="ghost" onclick="window.qecLocal&&window.qecLocal()">Meme ordinateur</button>
           </div>
         </div>
         <div class="howto">
-          <b>Comment jouer a deux PC.</b> Un joueur cree la salle et envoie le code a 5 lettres.
-          L'autre clique sur Rejoindre. Chaque joueur recoit un perso secret.
-          Posez des questions, retournez les portraits qui ne correspondent pas, puis accusez.
+          <b>Ouvre ce lien, joue.</b> Un joueur cree une salle, l'autre entre le code. Aucun compte.
         </div>
       </div>
     </section>
     <section class="screen" id="screen-setup">
       <div class="game-top">
-        <button class="ghost" data-back>&larr; Retour</button>
+        <button class="ghost" data-back type="button">&larr; Retour</button>
         <h2 id="setup-title">Mode</h2>
         <span></span>
       </div>
       <p id="setup-hint" class="sub"></p>
       <div class="manga-grid" id="manga-grid"></div>
       <div class="actions" style="margin-top:22px">
-        <button id="btn-launch" class="gold">Lancer</button>
+        <button id="btn-launch" class="gold" type="button">Lancer</button>
       </div>
     </section>
     <section class="screen" id="screen-join">
@@ -52,8 +50,8 @@
             <input id="join-code" maxlength="8" placeholder="EX : K7P3Q" style="text-transform:uppercase;letter-spacing:.2em;text-align:center;font-size:22px" />
           </div>
           <div class="actions" style="margin-top:16px">
-            <button id="btn-do-join">Rejoindre</button>
-            <button class="ghost" data-back>Retour</button>
+            <button id="btn-do-join" type="button">Rejoindre</button>
+            <button class="ghost" data-back type="button">Retour</button>
           </div>
         </div>
       </div>
@@ -61,11 +59,11 @@
     <section class="screen" id="screen-wait">
       <div class="hero">
         <h2>Salle ouverte</h2>
-        <p>Partage ce code avec ton ami sur l'autre PC.</p>
+        <p>Envoie le code a ton ami.</p>
         <div class="code-box" id="wait-code">*****</div>
-        <button id="btn-copy" class="ghost">Copier le code</button>
+        <button id="btn-copy" class="ghost" type="button">Copier le code</button>
         <p class="status" id="wait-status" style="margin-top:16px">Preparation...</p>
-        <div class="actions"><button class="ghost" data-back>Annuler</button></div>
+        <div class="actions"><button class="ghost" data-back type="button">Annuler</button></div>
       </div>
     </section>
     <section class="screen" id="screen-game">
@@ -76,8 +74,8 @@
         </div>
         <div class="secret" id="secret"></div>
         <div class="row">
-          <button id="btn-guess" class="gold">Accuser</button>
-          <button class="ghost" data-back>Quitter</button>
+          <button id="btn-guess" class="gold" type="button">Accuser</button>
+          <button class="ghost" data-back type="button">Quitter</button>
         </div>
       </div>
       <div class="turn-banner" id="turn">-</div>
@@ -93,12 +91,12 @@
             <div class="chat" id="chat"></div>
             <div class="chat-row">
               <input id="chat-input" maxlength="140" placeholder="Question libre..." />
-              <button id="btn-send">OK</button>
+              <button id="btn-send" type="button">OK</button>
             </div>
             <div id="pending-q" style="margin-top:8px;font-size:13px;color:var(--gold)"></div>
             <div class="answer-bar" id="answer-bar">
-              <button id="btn-yes">Oui</button>
-              <button id="btn-no" class="ghost">Non</button>
+              <button id="btn-yes" type="button">Oui</button>
+              <button id="btn-no" class="ghost" type="button">Non</button>
             </div>
           </div>
         </aside>
@@ -110,7 +108,7 @@
       <h2>Qui accuses-tu ?</h2>
       <p class="sub">Si tu te trompes, tu perds ce tour.</p>
       <div class="guess-grid" id="guess-grid"></div>
-      <button class="ghost" id="btn-cancel-guess">Annuler</button>
+      <button class="ghost" id="btn-cancel-guess" type="button">Annuler</button>
     </div>
   </div>
   <div class="modal" id="modal-end">
@@ -118,15 +116,16 @@
       <h2 id="end-title">Fin</h2>
       <p id="end-text" style="margin:12px 0"></p>
       <div class="actions">
-        <button id="btn-again" class="gold">Rejouer</button>
-        <button id="btn-home" class="ghost">Accueil</button>
+        <button id="btn-again" class="gold" type="button">Rejouer</button>
+        <button id="btn-home" class="ghost" type="button">Accueil</button>
       </div>
     </div>
   </div>
   <div class="toast" id="toast"></div>
-  <footer>Qui est-ce ? Manga — portraits stylises. Amusez-vous bien.</footer>
+  <footer>Qui est-ce ? Manga</footer>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/images.js"></script>
   <script src="js/portraits.js"></script>
   <script src="js/game.js"></script>
 </body>
