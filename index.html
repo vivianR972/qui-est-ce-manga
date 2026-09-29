@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Qui est-ce ? Manga</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <section class="screen active" id="screen-home">
+      <div class="hero">
+        <div class="logo">Qui est-ce ? <span>Manga</span></div>
+        <p>Le jeu de deduction version shonen. Choisis un univers, un personnage secret est tire, et fais parler ton ami a coups de questions oui / non.</p>
+        <div class="panel" style="max-width:520px;margin:28px auto 0;text-align:left">
+          <div class="field">
+            <label>Ton pseudo</label>
+            <input id="name-input" maxlength="18" placeholder="Ex. LuffyFan" />
+          </div>
+          <div class="actions" style="margin-top:18px">
+            <button id="btn-create">Creer une partie en ligne</button>
+            <button id="btn-join" class="cyan">Rejoindre un ami</button>
+            <button id="btn-local" class="ghost">Meme ordinateur</button>
+          </div>
+        </div>
+        <div class="howto">
+          <b>Comment jouer a deux PC.</b> Un joueur cree la salle et envoie le code a 5 lettres.
+          L'autre clique sur Rejoindre. Chaque joueur recoit un perso secret.
+          Posez des questions, retournez les portraits qui ne correspondent pas, puis accusez.
+        </div>
+      </div>
+    </section>
+    <section class="screen" id="screen-setup">
+      <div class="game-top">
+        <button class="ghost" data-back>&larr; Retour</button>
+        <h2 id="setup-title">Mode</h2>
+        <span></span>
+      </div>
+      <p id="setup-hint" class="sub"></p>
+      <div class="manga-grid" id="manga-grid"></div>
+      <div class="actions" style="margin-top:22px">
+        <button id="btn-launch" class="gold">Lancer</button>
+      </div>
+    </section>
+    <section class="screen" id="screen-join">
+      <div class="hero">
+        <h2>Rejoindre une salle</h2>
+        <p>Entre le code que ton ami t'a envoye.</p>
+        <div class="panel" style="max-width:420px;margin:20px auto">
+          <div class="field">
+            <label>Code de partie</label>
+            <input id="join-code" maxlength="8" placeholder="EX : K7P3Q" style="text-transform:uppercase;letter-spacing:.2em;text-align:center;font-size:22px" />
+          </div>
+          <div class="actions" style="margin-top:16px">
+            <button id="btn-do-join">Rejoindre</button>
+            <button class="ghost" data-back>Retour</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="screen" id="screen-wait">
+      <div class="hero">
+        <h2>Salle ouverte</h2>
+        <p>Partage ce code avec ton ami sur l'autre PC.</p>
+        <div class="code-box" id="wait-code">*****</div>
+        <button id="btn-copy" class="ghost">Copier le code</button>
+        <p class="status" id="wait-status" style="margin-top:16px">Preparation...</p>
+        <div class="actions"><button class="ghost" data-back>Annuler</button></div>
+      </div>
+    </section>
+    <section class="screen" id="screen-game">
+      <div class="game-top">
+        <div class="row">
+          <span class="badge">Mode <b id="mode-label">-</b></span>
+          <span class="badge">Salle <b id="room-label">-</b></span>
+        </div>
+        <div class="secret" id="secret"></div>
+        <div class="row">
+          <button id="btn-guess" class="gold">Accuser</button>
+          <button class="ghost" data-back>Quitter</button>
+        </div>
+      </div>
+      <div class="turn-banner" id="turn">-</div>
+      <div class="layout">
+        <div id="board" class="board"></div>
+        <aside class="side">
+          <div class="panel">
+            <h3>Questions rapides</h3>
+            <div class="q-list" id="q-list"></div>
+          </div>
+          <div class="panel">
+            <h3>Discussion</h3>
+            <div class="chat" id="chat"></div>
+            <div class="chat-row">
+              <input id="chat-input" maxlength="140" placeholder="Question libre..." />
+              <button id="btn-send">OK</button>
+            </div>
+            <div id="pending-q" style="margin-top:8px;font-size:13px;color:var(--gold)"></div>
+            <div class="answer-bar" id="answer-bar">
+              <button id="btn-yes">Oui</button>
+              <button id="btn-no" class="ghost">Non</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </div>
+  <div class="modal" id="modal-guess">
+    <div class="box panel">
+      <h2>Qui accuses-tu ?</h2>
+      <p class="sub">Si tu te trompes, tu perds ce tour.</p>
+      <div class="guess-grid" id="guess-grid"></div>
+      <button class="ghost" id="btn-cancel-guess">Annuler</button>
+    </div>
+  </div>
+  <div class="modal" id="modal-end">
+    <div class="box panel">
+      <h2 id="end-title">Fin</h2>
+      <p id="end-text" style="margin:12px 0"></p>
+      <div class="actions">
+        <button id="btn-again" class="gold">Rejouer</button>
+        <button id="btn-home" class="ghost">Accueil</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <footer>Qui est-ce ? Manga — portraits stylises. Amusez-vous bien.</footer>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/portraits.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
