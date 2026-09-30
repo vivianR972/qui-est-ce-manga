@@ -27,9 +27,16 @@
     for (let i = 0; i < 5; i++) s += abc[Math.floor(Math.random() * abc.length)];
     return s;
   }
-  function peerId(room) { return "qecm26" + String(room).toUpperCase(); }
+  function peerIds(room) {
+    room = String(room).toUpperCase();
+    return ["qecmanga-" + room, "qecm26" + room, "QEC" + room, room];
+  }
+  function peerId(room) { return peerIds(room)[0]; }
   function peerOpts() {
     return {
+      host: "0.peerjs.com",
+      port: 443,
+      path: "/",
       debug: 1,
       secure: true,
       config: {
@@ -136,9 +143,11 @@
   }
   function tryConnect() {
     if (!state.peer || state.connected) return;
-    setWait("Tentative " + (state.retries + 1) + "/12...");
+    var ids = peerIds(state.room);
+    var target = ids[state.retries % ids.length];
+    setWait("Tentative " + (state.retries + 1) + "/12 vers la salle...");
     try {
-      state.conn = state.peer.connect(peerId(state.room), { reliable: true, serialization: "json" });
+      state.conn = state.peer.connect(target, { reliable: true, serialization: "json" });
       wireConn();
     } catch (e) { scheduleRetry(); }
   }
@@ -146,7 +155,7 @@
     if (state.connected || state.local) return;
     state.retries += 1;
     if (state.retries > 12) {
-      setWait("Toujours pas connecte. Verifie : meme code, hote deja sur ecran Salle ouverte, les deux en HTTPS.");
+      setWait("Toujours pas connecte. Les DEUX doivent faire Ctrl+F5, puis recreer une salle.");
       return;
     }
     setTimeout(tryConnect, 1500);
