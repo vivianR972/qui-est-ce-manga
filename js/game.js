@@ -120,7 +120,7 @@
       state.mqtt.on("message", function(_t, payload) {
         try { onMsg(JSON.parse(payload.toString())); } catch (e) {}
       });
-      state.mqtt.on("error", function() { /* reconnect auto */ });
+      state.mqtt.on("error", function() {});
       state.mqtt.on("close", function() {
         if (!state.over && !state.local && state.connected && !state.started) setWait("Relais coupe, reconnexion...");
       });
@@ -177,6 +177,12 @@
       if (ok) endGame(false, msg.charId); else { log("Mauvaise accusation"); state.myTurn = true; updateTurn(); }
     }
     if (msg.type === "guessResult") { if (msg.ok) endGame(true, state._lastGuess); else { log("Rate"); state.myTurn = false; updateTurn(); } }
+    if (msg.type === "rematch" && state.isHost) {
+      $("#modal-end").classList.remove("show");
+      freshPool();
+      state.started = false;
+      beginOnline();
+    }
   }
   function beginOnline() {
     if (state.started) return;
@@ -197,8 +203,16 @@
     state._secret2 = pick(others.length ? others : state.pool);
     state.myTurn = true; beginBoard();
   }
+  function freshPool() {
+    if (!window.QEC || !QEC.pool) return;
+    var next = shuffle(QEC.pool(state.mode)).slice(0, 24);
+    if (next.length >= 8) state.pool = next;
+  }
   function beginBoard(secretForGuest) {
     try {
+      var end = $("#modal-end"); if (end) end.classList.remove("show");
+      var bar = $("#answer-bar"); if (bar) bar.classList.remove("show");
+      state.pendingQuestion = null; state.waitingAnswer = false;
       if (secretForGuest) {
         var found = (QEC.CHARS || []).filter(function(c){ return c.id === secretForGuest; })[0];
         if (found) state.secret = found;
@@ -290,7 +304,15 @@
     var c = (QEC.CHARS || []).filter(function(x){ return x.id === id; })[0] || state.secret;
     $("#end-text").textContent = iWon ? ("C'etait " + c.name) : ("Ton perso : " + state.secret.name);
   }
-  bind("btn-again", function(){ $("#modal-end").classList.remove("show"); if (state.local) startLocal(); });
+  function replay() {
+    var end = $("#modal-end"); if (end) end.classList.remove("show");
+    state.over = false; state.eliminated = {};
+    if (state.local) { freshPool(); startLocal(); return; }
+    if (!state.connected) return toast("Plus connecte. Recree une salle.");
+    if (state.isHost) { freshPool(); state.started = false; beginOnline(); }
+    else { toast("Relance envoyee"); send({ type: "rematch" }); }
+  }
+  bind("btn-again", replay);
   bind("btn-home", function(){ $("#modal-end").classList.remove("show"); destroyNet(); show("home"); });
   bind("btn-copy", function(){ try { navigator.clipboard.writeText(state.room); toast("Code copie"); } catch (e) { toast(state.room); } });
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
