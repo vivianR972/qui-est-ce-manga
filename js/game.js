@@ -4,7 +4,8 @@
   const state = {
     screen: "home", mode: "mix", name: "", room: "", isHost: false, local: false,
     peer: null, conn: null, connected: false, pool: [], secret: null, opponentName: "",
-    myTurn: false, waitingAnswer: false, pendingQuestion: null, eliminated: {}, over: false
+    myTurn: false, waitingAnswer: false, pendingQuestion: null, eliminated: {}, over: false,
+    retries: 0
   };
   try { state.name = localStorage.getItem("qec-name") || ""; } catch (e) {}
   function show(id) {
@@ -13,7 +14,7 @@
   function toast(t) {
     const el = $("#toast"); if (!el) return;
     el.textContent = t; el.classList.add("show");
-    setTimeout(function(){ el.classList.remove("show"); }, 2400);
+    setTimeout(function(){ el.classList.remove("show"); }, 2800);
   }
   function log(text) {
     const box = $("#chat"); if (!box) return;
@@ -26,7 +27,20 @@
     for (let i = 0; i < 5; i++) s += abc[Math.floor(Math.random() * abc.length)];
     return s;
   }
-  function peerId(room) { return "qecmanga-" + String(room).toUpperCase(); }
+  function peerId(room) { return "qecm26" + String(room).toUpperCase(); }
+  function peerOpts() {
+    return {
+      debug: 1,
+      secure: true,
+      config: {
+        iceServers: [
+          { urls: "stun:stun.l.google.com:19302" },
+          { urls: "stun:stun1.l.google.com:19302" },
+          { urls: "stun:stun.cloudflare.com:3478" }
+        ]
+      }
+    };
+  }
   function bind(id, fn) { const el = document.getElementById(id); if (el) el.onclick = fn; }
   function face(c) {
     try { if (window.QEC && QEC.face && c) return QEC.face(c); } catch (e) {}
@@ -49,6 +63,7 @@
   }
   function startCreate() {
     state.name = ($("#name-input") && $("#name-input").value.trim()) || "Joueur 1";
+    try { localStorage.setItem("qec-name", state.name); } catch (e) {}
     state.local = false; state.isHost = true; state.room = code();
     show("setup"); renderMangas();
     if ($("#setup-title")) $("#setup-title").textContent = "Creer une partie en ligne";
@@ -56,6 +71,7 @@
   }
   function startJoin() {
     state.name = ($("#name-input") && $("#name-input").value.trim()) || "Joueur 2";
+    try { localStorage.setItem("qec-name", state.name); } catch (e) {}
     state.local = false; state.isHost = false; show("join");
   }
   function startLocalMode() {
@@ -74,49 +90,111 @@
     if (state.local) startLocal(); else createRoom();
   });
   bind("btn-do-join", function() {
-    var room = $("#join-code").value.trim().toUpperCase();
+    var room = $("#join-code").value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
     if (room.length < 4) return toast("Code trop court.");
     joinRoom(room);
   });
+  function setWait(t) { if ($("#wait-status")) $("#wait-status").textContent = t; }
   function createRoom() {
-    show("wait"); $("#wait-code").textContent = state.room; $("#wait-status").textContent = "Ouverture de la salle...";
-    try { state.peer = new Peer(peerId(state.room), { debug: 0 }); } catch (e) { return toast("Impossible de creer la salle."); }
-    state.peer.on("open", function(){ $("#wait-status").textContent = "En attente de ton ami..."; });
-    state.peer.on("error", function(err){ $("#wait-status").textContent = "Erreur : " + err.type; });
-    state.peer.on("connection", function(conn){ if (state.conn) { conn.close(); return; } state.conn = conn; wireConn(); });
+    show("wait"); $("#wait-code").textContent = state.room;
+    setWait("Ouverture de la salle...");
+    destroyNet();
+    try { state.peer = new Peer(peerId(state.room), peerOpts()); }
+    catch (e) { return setWait("PeerJS indisponible. Reessaie."); }
+    state.peer.on("open", function(){ setWait("Salle ouverte. Ton ami entre ce code, puis Rejoindre."); });
+    state.peer.on("error", function(err){
+      if (err && err.type === "unavailable-id") {
+        state.room = code();
+        $("#wait-code").textContent = state.room;
+        setWait("Nouveau code, envoie-le a ton ami.");
+        try { state.peer.destroy(); } catch (e) {}
+        setTimeout(createRoom, 400);
+        return;
+      }
+      setWait("Erreur reseau : " + (err && err.type ? err.type : err) + ". Reessaie.");
+    });
+    state.peer.on("connection", function(conn){
+      if (state.conn && state.connected) { try { conn.close(); } catch (e) {} return; }
+      state.conn = conn;
+      setWait("Ami trouve, connexion...");
+      wireConn();
+    });
   }
   function joinRoom(room) {
-    state.room = room; show("wait"); $("#wait-code").textContent = room; $("#wait-status").textContent = "Connexion...";
-    state.peer = new Peer({ debug: 0 });
-    state.peer.on("open", function(){ state.conn = state.peer.connect(peerId(room), { reliable: true }); wireConn(); });
-    state.peer.on("error", function(err){ $("#wait-status").textContent = "Salle introuvable (" + err.type + ")"; });
+    state.room = room; state.retries = 0;
+    show("wait"); $("#wait-code").textContent = room; setWait("Connexion a la salle...");
+    destroyNet();
+    try { state.peer = new Peer(peerOpts()); }
+    catch (e) { return setWait("PeerJS indisponible."); }
+    state.peer.on("open", function(){ tryConnect(); });
+    state.peer.on("error", function(err){
+      setWait("Erreur : " + (err && err.type ? err.type : err));
+      if (err && (err.type === "peer-unavailable" || err.type === "network" || err.type === "server-error")) {
+        scheduleRetry();
+      }
+    });
+  }
+  function tryConnect() {
+    if (!state.peer || state.connected) return;
+    setWait("Tentative " + (state.retries + 1) + "/12...");
+    try {
+      state.conn = state.peer.connect(peerId(state.room), { reliable: true, serialization: "json" });
+      wireConn();
+    } catch (e) { scheduleRetry(); }
+  }
+  function scheduleRetry() {
+    if (state.connected || state.local) return;
+    state.retries += 1;
+    if (state.retries > 12) {
+      setWait("Toujours pas connecte. Verifie : meme code, hote deja sur ecran Salle ouverte, les deux en HTTPS.");
+      return;
+    }
+    setTimeout(tryConnect, 1500);
   }
   function wireConn() {
+    if (!state.conn) return;
     state.conn.on("open", function(){
       state.connected = true;
-      send({ type: "hello", name: state.name, isHost: state.isHost, mode: state.mode, pool: state.isHost ? state.pool.map(function(c){ return c.id; }) : null });
-      $("#wait-status").textContent = "Connecte";
+      setWait("Connecte ! Lancement...");
+      send({
+        type: "hello",
+        name: state.name,
+        isHost: state.isHost,
+        mode: state.mode,
+        pool: state.isHost ? state.pool.map(function(c){ return c.id; }) : null
+      });
+      if (!state.isHost) setWait("Connecte, en attente du plateau...");
     });
     state.conn.on("data", onMsg);
-    state.conn.on("close", function(){ toast("Deconnexion"); });
+    state.conn.on("close", function(){ if (!state.over) toast("Deconnexion"); state.connected = false; });
+    state.conn.on("error", function(){ if (!state.connected) scheduleRetry(); });
   }
-  function send(obj) { if (state.conn && state.conn.open) state.conn.send(obj); }
+  function send(obj) {
+    try { if (state.conn && state.conn.open) state.conn.send(obj); } catch (e) {}
+  }
   function destroyNet() {
     try { if (state.conn) state.conn.close(); } catch (e) {}
     try { if (state.peer) state.peer.destroy(); } catch (e) {}
     state.conn = null; state.peer = null; state.connected = false;
   }
+  function applyPool(ids, mode) {
+    if (mode) state.mode = mode;
+    if (ids && ids.length) {
+      state.pool = ids.map(function(id){ return (QEC.CHARS || []).filter(function(c){ return c.id === id; })[0]; }).filter(Boolean);
+    }
+  }
   function onMsg(msg) {
     if (!msg || !msg.type) return;
     if (msg.type === "hello") {
       state.opponentName = msg.name || "Adversaire";
-      if (!state.isHost && msg.pool) {
-        state.mode = msg.mode;
-        state.pool = msg.pool.map(function(id){ return QEC.CHARS.filter(function(c){ return c.id === id; })[0]; }).filter(Boolean);
-      }
+      if (!state.isHost) applyPool(msg.pool, msg.mode);
       if (state.isHost) beginOnline();
     }
-    if (msg.type === "start") { state.myTurn = !msg.hostStarts; beginBoard(msg.secretForGuest); }
+    if (msg.type === "start") {
+      applyPool(msg.pool, msg.mode);
+      state.myTurn = !msg.hostStarts;
+      beginBoard(msg.secretForGuest);
+    }
     if (msg.type === "question") {
       state.pendingQuestion = msg;
       $("#answer-bar").classList.add("show");
@@ -138,7 +216,13 @@
     state.secret = secretHost;
     var hostStarts = Math.random() < 0.5;
     state.myTurn = hostStarts;
-    send({ type: "start", hostStarts: hostStarts, secretForGuest: secretGuest.id });
+    send({
+      type: "start",
+      hostStarts: hostStarts,
+      secretForGuest: secretGuest.id,
+      mode: state.mode,
+      pool: state.pool.map(function(c){ return c.id; })
+    });
     beginBoard();
   }
   function startLocal() {
@@ -151,7 +235,7 @@
   function beginBoard(secretForGuest) {
     try {
       if (secretForGuest) {
-        var found = QEC.CHARS.filter(function(c){ return c.id === secretForGuest; })[0];
+        var found = (QEC.CHARS || []).filter(function(c){ return c.id === secretForGuest; })[0];
         if (found) state.secret = found;
       }
       if (!state.secret) state.secret = pick(state.pool);
@@ -171,7 +255,7 @@
   }
   function renderBoard() {
     var board = $("#board"); if (!board) return;
-    board.innerHTML = state.pool.map(function(c) {
+    board.innerHTML = (state.pool || []).map(function(c) {
       var down = state.eliminated[c.id] ? " down" : "";
       return '<article class="card' + down + '" data-id="' + c.id + '"><div class="art">' + face(c) + '</div><div class="meta"><div class="name">' + c.name + '</div><div class="serie">' + QEC.mangaName(c.manga) + '</div></div></article>';
     }).join("");
