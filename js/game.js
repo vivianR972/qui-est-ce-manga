@@ -26,10 +26,16 @@
   function peerOpts() {
     return {
       host: "0.peerjs.com", port: 443, path: "/", secure: true,
-      config: { iceServers: [
-        { urls: "stun:stun.l.google.com:19302" },
-        { urls: "stun:stun1.l.google.com:19302" }
-      ]}
+      config: {
+        iceServers: [
+          { urls: "stun:stun.l.google.com:19302" },
+          { urls: "stun:stun1.l.google.com:19302" },
+          { urls: "turn:openrelay.metered.ca:80", username: "openrelayproject", credential: "openrelayproject" },
+          { urls: "turn:openrelay.metered.ca:443", username: "openrelayproject", credential: "openrelayproject" },
+          { urls: "turn:openrelay.metered.ca:443?transport=tcp", username: "openrelayproject", credential: "openrelayproject" }
+        ],
+        iceTransportPolicy: "all"
+      }
     };
   }
   function face(c) {
@@ -95,9 +101,16 @@
       state.room = id;
       var el = $("#wait-code");
       if (el) { el.textContent = id; el.style.fontSize = "18px"; el.style.letterSpacing = "0.06em"; el.style.textTransform = "none"; }
-      setWait("Salle ouverte. COPIE ce code et envoie-le a ton ami.");
+      setWait("Salle ouverte. COPIE ce code et envoie-le a ton ami. Laisse cette page ouverte.");
     });
-    state.peer.on("error", function(err){ setWait("Erreur reseau : " + (err && err.type ? err.type : err)); });
+    state.peer.on("error", function(err){
+      var typ = err && err.type ? err.type : String(err);
+      if (typ === "webrtc" && state.room) {
+        setWait("Salle toujours ouverte. Ton ami doit coller le code et patienter.");
+        return;
+      }
+      setWait("Erreur reseau : " + typ);
+    });
     state.peer.on("connection", function(conn){
       if (state.conn && state.connected) { try { conn.close(); } catch (e) {} return; }
       state.conn = conn; setWait("Ami trouve, connexion..."); wireConn();
@@ -111,8 +124,9 @@
     catch (e) { return setWait("PeerJS indisponible."); }
     state.peer.on("open", function(){ tryConnect(); });
     state.peer.on("error", function(err){
-      setWait("Erreur : " + (err && err.type ? err.type : err));
-      if (err && (err.type === "peer-unavailable" || err.type === "network" || err.type === "server-error")) scheduleRetry();
+      var typ = err && err.type ? err.type : String(err);
+      setWait("Erreur : " + typ + " — nouvel essai...");
+      if (typ === "peer-unavailable" || typ === "network" || typ === "server-error" || typ === "webrtc" || typ === "socket-error") scheduleRetry();
     });
   }
   function tryConnect() {
@@ -124,7 +138,7 @@
   function scheduleRetry() {
     if (state.connected || state.local) return;
     state.retries += 1;
-    if (state.retries > 12) { setWait("Toujours pas connecte. Recree une salle et copie le NOUVEAU code."); return; }
+    if (state.retries > 12) { setWait("Toujours pas connecte. Recree une salle, copie le nouveau code, Wi-Fi des deux cotes si possible."); return; }
     setTimeout(tryConnect, 1500);
   }
   function wireConn() {
