@@ -148,10 +148,14 @@
     if (msg.type === "pass") { state.myTurn = true; state.canAccuse = false; state.waitingAnswer = false; log("A toi de jouer."); updateTurn(); }
     if (msg.type === "guess") {
       var ok = msg.charId === state.secret.id;
-      send({ type: "guessResult", ok: ok });
-      if (ok) endGame(false, msg.charId); else { log("Mauvaise accusation"); state.canAccuse = false; state.myTurn = true; updateTurn(); }
+      send({ type: "guessResult", ok: ok, charId: msg.charId });
+      if (ok) endGame(false, msg.charId);
+      else endGame(true, null, "wrong");
     }
-    if (msg.type === "guessResult") { if (msg.ok) endGame(true, state._lastGuess); else { log("Rate"); state.canAccuse = false; state.myTurn = false; updateTurn(); } }
+    if (msg.type === "guessResult") {
+      if (msg.ok) endGame(true, state._lastGuess);
+      else endGame(false, msg.charId || state._lastGuess, "wrong");
+    }
     if (msg.type === "rematch" && state.isHost) { $("#modal-end").classList.remove("show"); freshPool(); state.started = false; beginOnline(); }
   }
   function beginOnline() {
@@ -289,15 +293,22 @@
   bind("btn-cancel-guess", function(){ $("#modal-guess").classList.remove("show"); });
   function doGuess(id) {
     state._lastGuess = id;
-    if (state.local) { if (state._secret2 && id === state._secret2.id) endGame(true, id); else toast("Rate !"); return; }
+    if (state.local) {
+      if (state._secret2 && id === state._secret2.id) endGame(true, id);
+      else endGame(false, id, "wrong");
+      return;
+    }
     state.canAccuse = false;
     send({ type: "guess", charId: id });
   }
-  function endGame(iWon, id) {
-    state.over = true; $("#modal-end").classList.add("show");
+  function endGame(iWon, id, reason) {
+    state.over = true; state.canAccuse = false; $("#modal-end").classList.add("show");
     $("#end-title").textContent = iWon ? "Victoire" : "Perdu";
     var c = (QEC.CHARS || []).filter(function(x){ return x.id === id; })[0] || state.secret;
-    $("#end-text").textContent = iWon ? ("C'etait " + c.name) : ("Ton perso : " + state.secret.name);
+    if (reason === "wrong" && !iWon) $("#end-text").textContent = "Mauvaise accusation. Tu as perdu. Ton perso : " + state.secret.name;
+    else if (reason === "wrong" && iWon) $("#end-text").textContent = "L'autre s'est trompe. Tu gagnes.";
+    else $("#end-text").textContent = iWon ? ("C'etait " + c.name) : ("Ton perso : " + state.secret.name);
+    updateTurn();
   }
   function replay() {
     var end = $("#modal-end"); if (end) end.classList.remove("show");
