@@ -1,6 +1,6 @@
 window.QEC = window.QEC || {};
 QEC.IMAGES = QEC.IMAGES || {};
-QEC.LOGOS = {
+QEC.LOGOS = QEC.LOGOS || {
   mix: "https://upload.wikimedia.org/wikipedia/commons/1/15/Logo_Naruto_Shipp%C5%ABden.svg",
   naruto: "https://upload.wikimedia.org/wikipedia/commons/1/15/Logo_Naruto_Shipp%C5%ABden.svg",
   onepiece: "https://upload.wikimedia.org/wikipedia/commons/3/34/One_piece_logo_1.svg",
@@ -16,18 +16,21 @@ QEC.LOGOS = {
   opm: "https://static.wikia.nocookie.net/onepunchman/images/d/dd/One-Punch_Man_Logo.jpg",
   csm: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Chainsaw_Man_logo.svg/320px-Chainsaw_Man_logo.svg.png"
 };
-QEC.photo = function(c) { return (c && QEC.IMAGES[c.id]) || ""; };
+QEC.photo = function(c) { return (c && QEC.IMAGES && QEC.IMAGES[c.id]) || ""; };
 QEC.face = function(c) {
   if (!c) return "";
   var src = QEC.photo(c);
   var letter = String(c.name || "?").charAt(0);
-  var col = c.color || "#ff4d8d";
-  var fb = '<div style="width:100%;height:100%;min-height:80px;display:grid;place-items:center;background:' + col + ';font-weight:800;font-size:28px">' + letter + '</div>';
+  var col = c.color || "#7c3aed";
+  var fb = '<div class="ph" style="width:100%;height:100%;min-height:80px;display:grid;place-items:center;background:' + col + ';font-weight:800;font-size:28px;color:#fff">' + letter + '</div>';
   if (!src) return fb;
-  return '<img src="' + src + '" alt="" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block" onerror="this.style.display=\'none\';this.insertAdjacentHTML(\'afterend\',\'' + fb.replace(/'/g, '') + '\');">';
+  return '<span class="facebox" style="display:block;width:100%;height:100%;overflow:hidden">' +
+    '<img src="' + src + '" alt="" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block" onerror="this.style.display=\'none\';var n=this.nextSibling;if(n)n.style.display=\'grid\'">' +
+    '<div class="ph" style="display:none;width:100%;height:100%;min-height:80px;place-items:center;background:' + col + ';font-weight:800;font-size:28px;color:#fff">' + letter + '</div>' +
+    '</span>';
 };
 QEC.logo = function(id) {
-  var src = QEC.LOGOS[id];
+  var src = QEC.LOGOS && QEC.LOGOS[id];
   if (!src) return '<span class="ic">*</span>';
   return '<img class="lic-logo" src="' + src + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">';
 };
