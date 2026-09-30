@@ -20,7 +20,7 @@
 <button id="btn-join" type="button" class="cyan" onclick="window.qecJoin&&window.qecJoin()">Rejoindre un ami</button>
 <button id="btn-local" type="button" class="ghost" onclick="window.qecLocal&&window.qecLocal()">Meme ordinateur</button>
 </div></div>
-<p class="howto">Un joueur cree la salle, copie le code, l'autre le colle. Les deux doivent avoir rafraichi la page (Ctrl+F5).</p>
+<p class="howto">Un joueur cree la salle, l'autre entre le code a 5 lettres. Ctrl+F5 des deux cotes.</p>
 </div></section>
 <section class="screen" id="screen-setup">
 <div class="game-top"><button class="ghost" data-back type="button">Retour</button><h2 id="setup-title">Mode</h2><span></span></div>
@@ -30,8 +30,8 @@
 </section>
 <section class="screen" id="screen-join">
 <div class="hero"><h2>Rejoindre une salle</h2>
-<div class="panel" style="max-width:480px;margin:20px auto">
-<div class="field"><label>Colle le code complet</label><input id="join-code" maxlength="80" style="text-transform:none;letter-spacing:.04em;text-align:center;font-size:16px" placeholder="Colle ici"/></div>
+<div class="panel" style="max-width:420px;margin:20px auto">
+<div class="field"><label>Code a 5 lettres</label><input id="join-code" maxlength="8" style="text-transform:uppercase;letter-spacing:.2em;text-align:center;font-size:22px"/></div>
 <div class="actions" style="margin-top:16px"><button id="btn-do-join" type="button">Rejoindre</button><button class="ghost" data-back type="button">Retour</button></div>
 </div></div></section>
 <section class="screen" id="screen-wait">
@@ -56,7 +56,7 @@
 <div class="modal" id="modal-guess"><div class="box panel"><h2>Qui accuses-tu ?</h2><div class="guess-grid" id="guess-grid"></div><button class="ghost" id="btn-cancel-guess" type="button">Annuler</button></div></div>
 <div class="modal" id="modal-end"><div class="box panel"><h2 id="end-title">Fin</h2><p id="end-text"></p><div class="actions"><button id="btn-again" class="gold" type="button">Rejouer</button><button id="btn-home" class="ghost" type="button">Accueil</button></div></div></div>
 <div class="toast" id="toast"></div>
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://unpkg.com/mqtt@5.10.4/dist/mqtt.min.js"></script>
 <script src="js/data.js"></script>
 <script src="js/data-a.js"></script>
 <script src="js/data-b.js"></script>
@@ -69,5 +69,5 @@
 <script src="js/images7.js"></script>
 <script src="js/images8.js"></script>
 <script src="js/portraits.js"></script>
-<script src="js/game.js?v=11"></script>
+<script src="js/game.js?v=12"></script>
 </body></html>

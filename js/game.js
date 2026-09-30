@@ -3,9 +3,9 @@
   const $$ = sel => [...document.querySelectorAll(sel)];
   const state = {
     screen: "home", mode: "mix", name: "", room: "", isHost: false, local: false,
-    peer: null, conn: null, connected: false, pool: [], secret: null, opponentName: "",
-    myTurn: false, waitingAnswer: false, pendingQuestion: null, eliminated: {}, over: false,
-    retries: 0
+    mqtt: null, myId: Math.random().toString(36).slice(2, 10), connected: false,
+    pool: [], secret: null, opponentName: "", myTurn: false, waitingAnswer: false,
+    pendingQuestion: null, eliminated: {}, over: false, started: false
   };
   try { state.name = localStorage.getItem("qec-name") || ""; } catch (e) {}
   function show(id) {
@@ -23,21 +23,13 @@
     box.scrollTop = box.scrollHeight;
   }
   function bind(id, fn) { const el = document.getElementById(id); if (el) el.onclick = fn; }
-  function peerOpts() {
-    return {
-      host: "0.peerjs.com", port: 443, path: "/", secure: true,
-      config: {
-        iceServers: [
-          { urls: "stun:stun.l.google.com:19302" },
-          { urls: "stun:stun1.l.google.com:19302" },
-          { urls: "turn:openrelay.metered.ca:80", username: "openrelayproject", credential: "openrelayproject" },
-          { urls: "turn:openrelay.metered.ca:443", username: "openrelayproject", credential: "openrelayproject" },
-          { urls: "turn:openrelay.metered.ca:443?transport=tcp", username: "openrelayproject", credential: "openrelayproject" }
-        ],
-        iceTransportPolicy: "all"
-      }
-    };
+  function code() {
+    const abc = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let s = "";
+    for (let i = 0; i < 5; i++) s += abc[Math.floor(Math.random() * abc.length)];
+    return s;
   }
+  function topic() { return "qecmanga/v1/" + String(state.room).toUpperCase(); }
+  function setWait(t) { if ($("#wait-status")) $("#wait-status").textContent = t; }
   function face(c) {
     try { if (window.QEC && QEC.face && c) return QEC.face(c); } catch (e) {}
     var name = (c && c.name) ? c.name : "?";
@@ -60,7 +52,7 @@
   function startCreate() {
     state.name = ($("#name-input") && $("#name-input").value.trim()) || "Joueur 1";
     try { localStorage.setItem("qec-name", state.name); } catch (e) {}
-    state.local = false; state.isHost = true; state.room = "";
+    state.local = false; state.isHost = true; state.room = code();
     show("setup"); renderMangas();
     if ($("#setup-title")) $("#setup-title").textContent = "Creer une partie en ligne";
     if ($("#btn-launch")) $("#btn-launch").textContent = "Creer la salle";
@@ -83,81 +75,73 @@
     if (!window.QEC || !QEC.pool) return toast("Fichiers incomplets.");
     state.pool = shuffle(QEC.pool(state.mode)).slice(0, 24);
     if (state.pool.length < 8) return toast("Pas assez de personnages.");
-    if (state.local) startLocal(); else createRoom();
+    if (state.local) startLocal(); else openNet();
   });
   bind("btn-do-join", function() {
-    var room = $("#join-code").value.trim();
-    if (room.length < 4) return toast("Colle le code COMPLET affiche chez ton ami.");
-    joinRoom(room);
+    var room = $("#join-code").value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (room.length < 4) return toast("Code trop court.");
+    state.room = room; openNet();
   });
-  function setWait(t) { if ($("#wait-status")) $("#wait-status").textContent = t; }
-  function createRoom() {
-    show("wait"); $("#wait-code").textContent = "......";
-    setWait("Ouverture de la salle...");
+  function openNet() {
+    if (!window.mqtt) return setWait("Bibliotheque reseau absente. Ctrl+F5.") || toast("Recharge la page (Ctrl+F5).");
+    show("wait");
+    $("#wait-code").textContent = state.room;
+    $("#wait-code").style.fontSize = "34px";
+    $("#wait-code").style.letterSpacing = "0.28em";
+    setWait("Connexion au relais...");
     destroyNet();
-    try { state.peer = new Peer(peerOpts()); }
-    catch (e) { return setWait("PeerJS indisponible. Reessaie."); }
-    state.peer.on("open", function(id){
-      state.room = id;
-      var el = $("#wait-code");
-      if (el) { el.textContent = id; el.style.fontSize = "18px"; el.style.letterSpacing = "0.06em"; el.style.textTransform = "none"; }
-      setWait("Salle ouverte. COPIE ce code et envoie-le a ton ami. Laisse cette page ouverte.");
-    });
-    state.peer.on("error", function(err){
-      var typ = err && err.type ? err.type : String(err);
-      if (typ === "webrtc" && state.room) {
-        setWait("Salle toujours ouverte. Ton ami doit coller le code et patienter.");
-        return;
-      }
-      setWait("Erreur reseau : " + typ);
-    });
-    state.peer.on("connection", function(conn){
-      if (state.conn && state.connected) { try { conn.close(); } catch (e) {} return; }
-      state.conn = conn; setWait("Ami trouve, connexion..."); wireConn();
-    });
+    var urls = [
+      "wss://broker.emqx.io:8084/mqtt",
+      "wss://broker.hivemq.com:8884/mqtt"
+    ];
+    var i = 0;
+    function tryBroker() {
+      if (i >= urls.length) { setWait("Relais injoignable. Reessaie dans 10 secondes."); return; }
+      var url = urls[i++];
+      try {
+        state.mqtt = mqtt.connect(url, {
+          clientId: "qec-" + state.myId + "-" + Math.random().toString(16).slice(2, 6),
+          clean: true,
+          connectTimeout: 8000,
+          reconnectPeriod: 2000
+        });
+      } catch (e) { return tryBroker(); }
+      state.mqtt.on("connect", function() {
+        state.mqtt.subscribe(topic(), function(err) {
+          if (err) { setWait("Impossible de rejoindre la salle."); return; }
+          state.connected = true;
+          if (state.isHost) setWait("Salle ouverte. Ton ami entre ce code.");
+          else {
+            setWait("Salle rejointe, on attend l'hote...");
+            send({ type: "hello", name: state.name, isHost: false });
+          }
+        });
+      });
+      state.mqtt.on("message", function(_t, payload) {
+        try { onMsg(JSON.parse(payload.toString())); } catch (e) {}
+      });
+      state.mqtt.on("error", function() { /* reconnect auto */ });
+      state.mqtt.on("close", function() {
+        if (!state.over && !state.local && state.connected && !state.started) setWait("Relais coupe, reconnexion...");
+      });
+      setTimeout(function() {
+        if (!state.connected && state.mqtt) {
+          try { state.mqtt.end(true); } catch (e) {}
+          state.mqtt = null;
+          tryBroker();
+        }
+      }, 9000);
+    }
+    tryBroker();
   }
-  function joinRoom(room) {
-    state.room = room; state.retries = 0;
-    show("wait"); $("#wait-code").textContent = room; setWait("Connexion a la salle...");
-    destroyNet();
-    try { state.peer = new Peer(peerOpts()); }
-    catch (e) { return setWait("PeerJS indisponible."); }
-    state.peer.on("open", function(){ tryConnect(); });
-    state.peer.on("error", function(err){
-      var typ = err && err.type ? err.type : String(err);
-      setWait("Erreur : " + typ + " — nouvel essai...");
-      if (typ === "peer-unavailable" || typ === "network" || typ === "server-error" || typ === "webrtc" || typ === "socket-error") scheduleRetry();
-    });
+  function send(obj) {
+    if (!state.mqtt || !state.connected) return;
+    obj.from = state.myId;
+    try { state.mqtt.publish(topic(), JSON.stringify(obj)); } catch (e) {}
   }
-  function tryConnect() {
-    if (!state.peer || state.connected) return;
-    setWait("Tentative " + (state.retries + 1) + "/12...");
-    try { state.conn = state.peer.connect(state.room, { reliable: true }); wireConn(); }
-    catch (e) { scheduleRetry(); }
-  }
-  function scheduleRetry() {
-    if (state.connected || state.local) return;
-    state.retries += 1;
-    if (state.retries > 12) { setWait("Toujours pas connecte. Recree une salle, copie le nouveau code, Wi-Fi des deux cotes si possible."); return; }
-    setTimeout(tryConnect, 1500);
-  }
-  function wireConn() {
-    if (!state.conn) return;
-    state.conn.on("open", function(){
-      state.connected = true;
-      setWait("Connecte ! Lancement...");
-      send({ type: "hello", name: state.name, isHost: state.isHost, mode: state.mode, pool: state.isHost ? state.pool.map(function(c){ return c.id; }) : null });
-      if (!state.isHost) setWait("Connecte, en attente du plateau...");
-    });
-    state.conn.on("data", onMsg);
-    state.conn.on("close", function(){ if (!state.over) toast("Deconnexion"); state.connected = false; });
-    state.conn.on("error", function(){ if (!state.connected) scheduleRetry(); });
-  }
-  function send(obj) { try { if (state.conn && state.conn.open) state.conn.send(obj); } catch (e) {} }
   function destroyNet() {
-    try { if (state.conn) state.conn.close(); } catch (e) {}
-    try { if (state.peer) state.peer.destroy(); } catch (e) {}
-    state.conn = null; state.peer = null; state.connected = false;
+    try { if (state.mqtt) state.mqtt.end(true); } catch (e) {}
+    state.mqtt = null; state.connected = false; state.started = false;
   }
   function applyPool(ids, mode) {
     if (mode) state.mode = mode;
@@ -166,15 +150,18 @@
     }
   }
   function onMsg(msg) {
-    if (!msg || !msg.type) return;
+    if (!msg || !msg.type || msg.from === state.myId) return;
     if (msg.type === "hello") {
       state.opponentName = msg.name || "Adversaire";
-      if (!state.isHost) applyPool(msg.pool, msg.mode);
-      if (state.isHost) beginOnline();
+      if (state.isHost && !state.started) {
+        setWait("Ami trouve, lancement...");
+        beginOnline();
+      }
     }
     if (msg.type === "start") {
       applyPool(msg.pool, msg.mode);
       state.myTurn = !msg.hostStarts;
+      state.started = true;
       beginBoard(msg.secretForGuest);
     }
     if (msg.type === "question") {
@@ -192,6 +179,8 @@
     if (msg.type === "guessResult") { if (msg.ok) endGame(true, state._lastGuess); else { log("Rate"); state.myTurn = false; updateTurn(); } }
   }
   function beginOnline() {
+    if (state.started) return;
+    state.started = true;
     var secretHost = pick(state.pool);
     var others = state.pool.filter(function(c){ return c.id !== secretHost.id; });
     var secretGuest = pick(others.length ? others : state.pool);
@@ -220,7 +209,7 @@
       if ($("#room-label")) $("#room-label").textContent = state.local ? "LOCAL" : state.room;
       renderSecret(); renderBoard(); renderQuestions();
       if ($("#chat")) $("#chat").innerHTML = "";
-      log("Ecris ta question dans Discussion. Les boutons a droite sont optionnels.");
+      log("Ecris ta question dans Discussion.");
       updateTurn();
     } catch (e) { toast("Erreur plateau : " + e.message); }
   }
