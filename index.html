@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Qui est-ce ? Manga</title>
 <link rel="stylesheet" href="css/style.css"/>
+<link rel="stylesheet" href="css/ui.css"/>
 </head>
 <body>
 <div id="app">
@@ -18,7 +19,9 @@
 <button id="btn-create" type="button" onclick="window.qecCreate&&window.qecCreate()">Creer une partie en ligne</button>
 <button id="btn-join" type="button" class="cyan" onclick="window.qecJoin&&window.qecJoin()">Rejoindre un ami</button>
 <button id="btn-local" type="button" class="ghost" onclick="window.qecLocal&&window.qecLocal()">Meme ordinateur</button>
-</div></div></div></section>
+</div></div>
+<p class="howto">Un joueur cree la salle, l'autre entre le code. Aucun compte.</p>
+</div></section>
 <section class="screen" id="screen-setup">
 <div class="game-top"><button class="ghost" data-back type="button">Retour</button><h2 id="setup-title">Mode</h2><span></span></div>
 <p id="setup-hint" class="sub"></p>
@@ -57,7 +60,6 @@
 <script src="js/data.js"></script>
 <script src="js/data-a.js"></script>
 <script src="js/data-b.js"></script>
-<script src="js/data-c.js"></script>
 <script src="js/portraits.js"></script>
 <script src="js/game.js"></script>
 </body></html>
