@@ -1,0 +1,27 @@
+window.QEC=window.QEC||{};
+QEC.IMAGES=Object.assign(QEC.IMAGES||{}, {
+"ryuk":"https://deathnote.fandom.com/wiki/Special:FilePath/Ryuk_DN_Coloured.png",
+"saitama":"https://onepunchman.fandom.com/wiki/Special:FilePath/Saitama_Manga_Profile.png",
+"sakura":"https://naruto.fandom.com/wiki/Special:FilePath/Sakura_Part_1.png",
+"sanji":"https://onepiece.fandom.com/wiki/Special:FilePath/Sanji_Anime_Post_Timeskip_Infobox.png",
+"sasuke":"https://naruto.fandom.com/wiki/Special:FilePath/Sasuke_Part_1.png",
+"shigaraki":"https://bokunoheroacademia.fandom.com/wiki/Special:FilePath/Final_War_Tomura_Shigaraki.png",
+"shinobu":"https://kimetsu-no-yaiba.fandom.com/wiki/Special:FilePath/Shinobu_anime.png",
+"soichiro":"https://deathnote.fandom.com/wiki/Special:FilePath/Soichiro_Yagami.PNG",
+"sonic":"https://onepunchman.fandom.com/wiki/Special:FilePath/Sonic_Manga.png",
+"sukuna":"https://jujutsu-kaisen.fandom.com/wiki/Special:FilePath/Sukuna_%28Volume_29%29.png",
+"tanjiro":"https://kimetsu-no-yaiba.fandom.com/wiki/Special:FilePath/Tanjiro_anime_right_face.png",
+"tatsumaki":"https://onepunchman.fandom.com/wiki/Special:FilePath/Tatsumaki_Manga_Profile.png",
+"todoroki":"https://bokunoheroacademia.fandom.com/wiki/Special:FilePath/Shoto_Todoroki_Action_5.png",
+"toga":"https://bokunoheroacademia.fandom.com/wiki/Special:FilePath/Himiko_Toga_Anime_Action_5.png",
+"toji":"https://jujutsu-kaisen.fandom.com/wiki/Special:FilePath/Toji_Fushiguro_%28Anime%29.png",
+"toshiro":"https://bleach.fandom.com/wiki/Special:FilePath/Ep363HitsugayaProfile.png",
+"uraraka":"https://bokunoheroacademia.fandom.com/wiki/Special:FilePath/Ochaco_Uraraka_Action_5.png",
+"vegeta":"https://dragonball.fandom.com/wiki/Special:FilePath/Vegeta_anime_profile.png",
+"winry":"https://fma.fandom.com/wiki/Special:FilePath/WinryManga.png",
+"wrath":"https://fma.fandom.com/wiki/Special:FilePath/KingBradley1080p.png",
+"yoruichi":"https://bleach.fandom.com/wiki/Special:FilePath/Ep246YoruichiShih%C5%8Din.png",
+"yuji":"https://jujutsu-kaisen.fandom.com/wiki/Special:FilePath/Yuji_Itadori_%28Anime_4%29.png",
+"zenitsu":"https://kimetsu-no-yaiba.fandom.com/wiki/Special:FilePath/Zenitsu_anime_right_face.png",
+"zoro":"https://onepiece.fandom.com/wiki/Special:FilePath/Roronoa_Zoro_Anime_Post_Timeskip_Infobox.png"
+});
