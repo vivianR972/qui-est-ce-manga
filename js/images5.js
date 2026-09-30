@@ -1,0 +1,17 @@
+window.QEC=window.QEC||{};
+QEC.IMAGES=Object.assign(QEC.IMAGES||{},{
+"jiraiya":"https://static.wikia.nocookie.net/naruto/images/2/21/Profile_Jiraiya.PNG/revision/latest/scale-to-width-down/400",
+"orochimaru":"https://static.wikia.nocookie.net/naruto/images/1/14/Orochimaru_Infobox.png/revision/latest/scale-to-width-down/400",
+"tsunade":"https://static.wikia.nocookie.net/naruto/images/a/aa/Tsunade_as_Hokage.PNG/revision/latest/scale-to-width-down/400",
+"shikamaru":"https://static.wikia.nocookie.net/naruto/images/4/44/Shikamaru_Part_I.png/revision/latest/scale-to-width-down/400",
+"rocklee":"https://static.wikia.nocookie.net/naruto/images/9/97/Rock_Lee_Part_I.png/revision/latest/scale-to-width-down/400",
+"neji":"https://static.wikia.nocookie.net/naruto/images/7/7e/Neji_Part_I.png/revision/latest/scale-to-width-down/400",
+"madara":"https://static.wikia.nocookie.net/naruto/images/3/37/Reanimated_Madara_Uchiha.png/revision/latest/scale-to-width-down/400",
+"minato":"https://static.wikia.nocookie.net/naruto/images/e/eb/Minato_Jonin.png/revision/latest/scale-to-width-down/400",
+"obito":"https://static.wikia.nocookie.net/naruto/images/4/4a/Obito_Uchiha.png/revision/latest/scale-to-width-down/400",
+"sai":"https://static.wikia.nocookie.net/naruto/images/0/07/Sai_Infobox.png/revision/latest/scale-to-width-down/400",
+"ino":"https://static.wikia.nocookie.net/naruto/images/d/dd/Ino.png/revision/latest/scale-to-width-down/400",
+"konan":"https://static.wikia.nocookie.net/naruto/images/3/36/Young_Konan_OL.png/revision/latest/scale-to-width-down/400",
+"pain":"https://static.wikia.nocookie.net/naruto/images/0/06/Nagato_Early_Akatsuki.png/revision/latest/scale-to-width-down/400",
+"itachi":"https://static.wikia.nocookie.net/naruto/images/5/5e/Itachi_Akatsuki.png/revision/latest/scale-to-width-down/400"
+});
