@@ -20,7 +20,7 @@
 <button id="btn-join" type="button" class="cyan" onclick="window.qecJoin&&window.qecJoin()">Rejoindre un ami</button>
 <button id="btn-local" type="button" class="ghost" onclick="window.qecLocal&&window.qecLocal()">Meme ordinateur</button>
 </div></div>
-<p class="howto">Un joueur cree la salle, l'autre entre le code. Aucun compte.</p>
+<p class="howto">Un joueur cree la salle, copie le code, l'autre le colle. Les deux doivent avoir rafraichi la page (Ctrl+F5).</p>
 </div></section>
 <section class="screen" id="screen-setup">
 <div class="game-top"><button class="ghost" data-back type="button">Retour</button><h2 id="setup-title">Mode</h2><span></span></div>
@@ -30,12 +30,12 @@
 </section>
 <section class="screen" id="screen-join">
 <div class="hero"><h2>Rejoindre une salle</h2>
-<div class="panel" style="max-width:420px;margin:20px auto">
-<div class="field"><label>Code</label><input id="join-code" maxlength="8" style="text-transform:uppercase;letter-spacing:.2em;text-align:center;font-size:22px"/></div>
+<div class="panel" style="max-width:480px;margin:20px auto">
+<div class="field"><label>Colle le code complet (pas seulement 5 lettres)</label><input id="join-code" maxlength="80" style="text-transform:none;letter-spacing:.04em;text-align:center;font-size:16px" placeholder="Colle ici"/></div>
 <div class="actions" style="margin-top:16px"><button id="btn-do-join" type="button">Rejoindre</button><button class="ghost" data-back type="button">Retour</button></div>
 </div></div></section>
 <section class="screen" id="screen-wait">
-<div class="hero"><h2>Salle ouverte</h2>
+<div class="hero"><h2>Salle</h2>
 <div class="code-box" id="wait-code">*****</div>
 <button id="btn-copy" class="ghost" type="button">Copier le code</button>
 <p class="status" id="wait-status" style="margin-top:16px"></p>
@@ -69,5 +69,5 @@
 <script src="js/images7.js"></script>
 <script src="js/images8.js"></script>
 <script src="js/portraits.js"></script>
-<script src="js/game.js"></script>
+<script src="js/game.js?v=9"></script>
 </body></html>
